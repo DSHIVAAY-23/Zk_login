@@ -1,14 +1,7 @@
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
-import { useEffect, useState } from 'react';
+import { useState } from "react";
 import { fromB64 } from "@mysten/bcs";
-import GoogleLogo from "../google.svg";
-import { useNavigate } from "react-router-dom";
-import queryString from "query-string";
-import Auth from '../Auth/auth';
-
-
-
-import { SuiClient } from "@mysten/sui.js/client";
+import GoogleLogo from "./google.svg";
 import {
   CLIENT_ID,
   FULLNODE_URL,
@@ -21,6 +14,9 @@ import {
   SUI_PROVER_DEV_ENDPOINT,
   USER_SALT_LOCAL_STORAGE_KEY,
 } from "./constant";
+
+import { SuiClient } from "@mysten/sui.js/client";
+
 import {
     genAddressSeed,
     generateNonce,
@@ -33,46 +29,17 @@ import { Stack } from "@mui/material";
 
 
 export default function Login() {
-
-  const navigate = useNavigate();
-
-  const handleGoogleLogin = () => {
-    // Construct Google authentication URL with necessary parameters
-    const params = new URLSearchParams({
-      client_id: 'YOUR_GOOGLE_CLIENT_ID',
-      redirect_uri: 'YOUR_REDIRECT_URI',
-      response_type: 'token', // or 'code' based on your needs
-      scope: 'email profile', // Add required scopes
-    });
-
-    const loginURL = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-
-    // Navigate to the Google authentication URL
-    window.location.href = '/auth';
-  };
-
   const resetstate =() => {
     setEphemeralKeyPair(undefined);
     setNonce("");
 
   };
-  const [oauthParams, setOauthParams] =
-  useState<queryString.ParsedQuery<string>>();
-  
   const MAX_EPOCH_LOCAL_STORAGE_KEY = "demo_max_epoch_key_pair";
   const [maxEpoch, setMaxEpoch] = useState(0);
   const [currentEpoch, setCurrentEpoch] = useState("");
   const [nonce, setNonce] = useState("");
-  
 
-  const suiClient = new SuiClient({ url: FULLNODE_URL });
-  const params = new URLSearchParams({
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "id_token",
-    scope: "openid",
-    nonce: nonce,
-  });
+const suiClient = new SuiClient({ url: FULLNODE_URL });
 
 
     const RANDOMNESS_SESSION_STORAGE_KEY = "demo_randomness_key_pair";
@@ -82,10 +49,6 @@ export default function Login() {
     const privateKey = window.sessionStorage.getItem(
       KEY_PAIR_SESSION_STORAGE_KEY
     );
-    
-  
-
-
     // if (privateKey) {
     //     const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(
     //       fromB64(privateKey)
@@ -105,22 +68,6 @@ export default function Login() {
                 }}
               >
                'Generate randomness'
-              </button>
-              <button
-                
-                
-                onClick={async () => {
-                  const { epoch } = await suiClient.getLatestSuiSystemState();
-
-                  setCurrentEpoch(epoch);
-                  window.localStorage.setItem(
-                    MAX_EPOCH_LOCAL_STORAGE_KEY,
-                    String(Number(epoch) + 10)
-                  );
-                  setMaxEpoch(Number(epoch) + 10);
-                }}
-              >
-              Fetch current Epoch
               </button>
             <button
                 onClick={() => {
@@ -173,17 +120,37 @@ export default function Login() {
                 >
                   Generate Nonce
                 </button>
+                <button
                 
+                
+                onClick={async () => {
+                  const { epoch } = await suiClient.getLatestSuiSystemState();
+
+                  setCurrentEpoch(epoch);
+                  window.localStorage.setItem(
+                    MAX_EPOCH_LOCAL_STORAGE_KEY,
+                    String(Number(epoch) + 10)
+                  );
+                  setMaxEpoch(Number(epoch) + 10);
+                }}
+              >
+              Fetch current Epoch
+              </button>
               <button
                 
                 disabled={!nonce}
-                onClick={handleGoogleLogin}
                 
-                // onClick={() => {
-                 
-                //   const loginURL = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-                //   window.location.replace(loginURL);
-                // }}
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    client_id: "621510391892-s72fldl22eh410e6bht073ab8k01aqal.apps.googleusercontent.com",
+                    // redirect_uri: REDIRECT_URI,
+                    response_type: "id_token",
+                    scope: "openid",
+                    nonce: nonce,
+                  });
+                  const loginURL = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+                  window.location.replace(loginURL);
+                }}
               >
                 <img
                   src={GoogleLogo}
@@ -195,9 +162,6 @@ export default function Login() {
                 />{" "}
                 Sign In With Google
               </button>
-
-              
-      
         </div>
     );
 }
